@@ -1,0 +1,233 @@
+\documentclass{article}
+\usepackage{hyperref}
+\begin{document}
+\title{Detailed documentation of the library for special mathematical functions by W. Fullerton}
+\author{Arjen Markus}
+\maketitle
+
+\section{Introduction}
+
+The orignal code to the library can be found on \url{http://netlib.org}. It has been updated to the current
+Fortran standard:
+
+\begin{itemize}
+\item
+The code has been transformed to free-form
+\item
+Elimination of \verb+GOTO+ and introduction of \verb+IMPLICIT NONE+. In some cases calculations for
+particular cases has been moved to make the control flow easier.
+\item
+Error messages because of arguments out of range have been replaced by \verb+NaN+. The original code would
+generally stop the program.
+\item
+Warnings because of loss of accuracry have been removed, as such messages, written to the screen, do not seem
+appropriate for a general library. It may be useful to add an auxiliary routine that checks the arguments.
+\item
+All code is now contained in a small set of modules, where the module \verb+specfunc_fullerton+ is the overall
+module that gives access to all public functions.
+\end{itemize}
+
+For the moment only the single-precision implementation has been updated.
+
+\section{Airy functions}
+The module \verb+fullerton_airy+ contains the routines for evaluating the Airy Ai and Bi functions and their
+first derivatives.
+
+The Airy functions are solutions to the differential equation:
+
+\begin{equation}
+    \frac{d^2y}{dx^2} - xy = 0
+\end{equation}
+
+The implementations of Airy Ai and Bi functions are:
+
+\begin{verbatim}
+    y = airy_ai(x)
+    y = airy_bi(x)
+\end{verbatim}
+
+The implementations of the first derivatives are:
+
+\begin{verbatim}
+    y = airy_aiprime(x)
+    y = airy_biprime(x)
+\end{verbatim}
+
+
+\section{Modified Bessel functions}
+The module \verb+fullerton_bessel+ implements the modified Bessel functions of the first and second kind, $I0$, $I1$, $K0$, $K1$
+and $In$, $Kn$. The ordinary Bessel functions are part of the current Fortran standard.
+
+\begin{verbatim}
+    y = bessel_i0(x)
+    y = bessel_i1(x)
+    y = bessel_k0(x)
+    y = bessel_k1(x)
+\end{verbatim}
+The argument $x$ must be positive.
+
+\section{Beta function and related functions}
+The module \verb+fullerton_beta+ contains implementations for the beta function, the incomplete beta function
+and the logarithm of the beta function.
+
+The beta function is defined as:
+
+\begin{equation}
+    B(p,q) = \int_0^1 x^{p-1} (1 - x)^{q-1} dx = \frac{\Gamma(p)\Gamma(q)}{\Gamma(p+q)}
+\end{equation}
+\noindent where parameters $p, q > -1$
+
+The incomplete beta is defined as:
+
+\begin{equation}
+    B(x;p,q) = \int_0^x u^{p-1} (1 - u)^{q-1} du
+\end{equation}
+
+The implementations of these fucntions and the logarithm are:
+
+\begin{verbatim}
+    y = beta(p,q)
+    y = beta_inc(x,p,q)
+    y = log_beta(p,q)
+\end{verbatim}
+
+
+\section{Exponential integrals}
+The module \verb+fullerton_ei+ can be used to evaluate a variety of definite integrals:
+
+\begin{eqnarray}
+    E_n(x) &=& \int^\infty_1 \frac{e^{-xt}}{t^n} dt              \\
+    Ei(x)  &=& -E_1(-x)                                          \\
+    Ci(x)  &=& -\int^\infty_x \frac{\cos t}{t} dt                \\
+    Si(x)  &=& -\int^x_0 \frac{\sin t}{t} dt                     \\
+    Chi(x) &=& \gamma + \ln x + \int^x_0 \frac{\cosh t -1}{t} dt \\
+    Shi(x) &=& \int^x_0 \frac{\sinh t -1}{t} dt
+\end{eqnarray}
+\noindent where $\gamma$ is the Euler-Mascheroni constant, 0.5772156649...
+
+The exponential integrals $Ei$, $E_1$ and $E_n$ is implemented as:
+
+\begin{verbatim}
+    y = integral_ei(x)
+    y = integral_e1(x)
+    y = integral_en(n,x)
+\end{verbatim}
+
+The cosine integral $Ci$, sine integral $Si$, hyperbolic cosine integral $Chi$ and
+hyperbolic sine integral $Shi$ are implemented as:
+
+\begin{verbatim}
+    y = integral_ci(x)
+    y = integral_chi(x)
+    y = integral_si(x)
+    y = integral_shi(x)
+\end{verbatim}
+
+\section{Gamma function and related functions}
+The module \verb+fullerton_gamma+ implements the Gamma function and several related functions. Note that
+the Gamma function in this module is an alternative to the standard function and is used by among others the
+module \verb+fullerton_beta+ to ensure consistent results.
+
+The implemented functions are:
+\begin{eqnarray}
+    \Gamma(x)   &=& \int^\infty_0 t^{x-1} e^{-t} dt \\
+    \gamma(a,x) &=& \int^x_0 t^{a-1} e^{-t} dt      \\
+    \Gamma(a,x) &=& \int^\infty_x t^{a-1} e^{-t} dt \\
+    \Psi(x)     &=& \frac{d}{dx} \ln \Gamma(x)      \\
+    \gamma^*(x) &=& \frac{x^{-a}}{\Gamma(x)} \int^x_0 t^{a-1} e^{-t} dt
+\end{eqnarray}
+\noindent where $\Psi$ is the digamma function and $\gamma^*$ is the incomplete Tricomi gamma function (see, for instance,
+\url{https://www.cs.purdue.edu/homes/wxg/selected_works/section_02/155.pdf}.
+
+In addition the module evaluates the logarithm of the Gamma function and the reciprocal. A direct evaluation
+of these expressions is more accurate than evaluting the Gamma function and then taking the logarithm or the reciprocal
+of that result.
+
+The functions are implemented as:
+\begin{verbatim}
+    y = fgamma(x)
+    y = log_gamma(x)
+    y = inc_gamma(a,x)        ! gamma(a,x)
+    y = inc_gamma_compl(a,x)  ! Gamma(a,x), the complement
+    y = gamma_tricomi(x)
+    y = reciprocal_gamma(x)
+    y = digamma(x)
+\end{verbatim}
+
+The subroutine \verb+sign_log_gamma+ evaluates the logarithm and the sign of the gamma function:
+\begin{verbatim}
+    call sign_log_gamma( x, algam, sgngam )
+\end{verbatim}
+
+
+\section{Inverse exponential integrals}
+The module \verb+fullerton_inv_ci+ implements two inverse functions: the inverse cosine integral
+and the inverse hyperbolic cosine integral:
+\begin{eqnarray}
+    y &=& Ci^{-1}(x) \\
+    y &=& Chi^{-1}(x)
+\end{eqnarray}
+
+Thse mathematical functions are implemented as:
+\begin{verbatim}
+    y = inverse_ci(x)
+    y = inverse_chi(x)
+\end{verbatim}
+
+\emph{Note:} the implementation of $Chi^{-1}(x)$ presents a discontinuity around $x = 3$. This is
+quite unusual within this library. It needs to be further investigated.
+
+\section{Pochhammer symbol and related funcions}
+The module \verb+fullerton_poch+ implements the Pochhammer symbol and two related functions:
+\begin{eqnarray}
+    (a)_x             &=& \frac{\Gamma(a+x)}{\Gamma(a)} \\
+    \frac{(a)_x-1}{x} &=& \frac{\Gamma(a+x)-1}{ x \Gamma(a)} \\
+    n!                &=& n \cdot (n-1) \cdot (n-2) \cdot ... \cdot 2 \cdot 1
+\end{eqnarray}
+The second function is meant for special situations where the argument x is much smaller than 1.
+The third function is the ordinary factorial, but as the value can exceed the range of ordinary integers,
+it is calculated as a real number, extending the range of the argument.
+
+The functions are implemented as:
+\begin{verbatim}
+    y = poch(a,x)
+    y = poch1(a,x)
+    y = fac(n)
+\end{verbatim}
+
+
+\section{Miscelleaneous functions}
+The module \verb+fullerton_misc+ defines as number of miscellaneous functions:
+
+\begin{itemize}
+\item
+The cubic root of a real number (including negative numbers)
+\item
+The functions $f(x) = ln(1+x)/x$ and $g(x) = (e^x-1)/x$ with the argument $|x| << 1$
+\item
+Dawson's integral:
+\begin{equation}
+     D(x) = e^{-x^2} \int^y_0 e^{y^2} dy
+\end{equation}
+
+\noindent and its first derivative $D'(x) = 1 = 2 x D(x)$.
+\item
+Spence's function:
+\begin{equation}
+     S(x) = - \int^x_0 \ln |1-y| dy
+\end{equation}
+\noindent though the values as evaluated and the description on \url{https://mathworld.wolfram.com} are
+not in agreement. This is something to be examined.
+\end{itemize}
+
+These functions are implemented as:
+\begin{verbatim}
+    y = cbrt(x)
+    y = lnrel(x)
+    y = exprel(x)
+    y = integral_dawson(x)
+    y = dawson_prime(x)
+    y = integral_spence(x)
+\end{verbatim}
+
+\end{document}

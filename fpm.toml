@@ -1,0 +1,65 @@
+name = "specfunc_fullerton"
+version = "0.1.0"
+license = "MIT"
+author = "Arjen Markus"
+maintainer = "arjen.markus895@gmail.com"
+copyright = "2022 Arjen Markus"
+
+[[library]]
+source-dir="src"
+
+[[test]]
+name="test_airy"
+source-dir="test/airy"
+main="test_airy.f90"
+
+[[test]]
+name="test_bessel_i0"
+source-dir="test/bessel_i0"
+main="test_i0.f90"
+
+[[test]]
+name="test_bessel_i1"
+source-dir="test/bessel_i1"
+main="test_i1.f90"
+
+[[test]]
+name="test_bessel_k0"
+source-dir="test/bessel_k0"
+main="test_k0.f90"
+
+[[test]]
+name="test_bessel_k1"
+source-dir="test/bessel_k1"
+main="test_k1.f90"
+
+[[test]]
+name="test_beta"
+source-dir="test/beta"
+main="test_beta.f90"
+
+[[test]]
+name="test_ei"
+source-dir="test/ei"
+main="test_ei.f90"
+
+[[test]]
+name="test_gamma"
+source-dir="test/gamma"
+main="test_gamma.f90"
+
+[[test]]
+name="test_inv_ci"
+source-dir="test/inv_ci"
+main="test_inv_ci.f90"
+
+[[test]]
+name="test_misc_exp"
+source-dir="test/misc_exp"
+main="test_misc_exp.f90"
+
+[[test]]
+name="test_poch"
+source-dir="test/poch"
+main="test_poch.f90"
+

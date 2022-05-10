@@ -1,0 +1,8 @@
+dd. 10 may 2022
+Test the functions En, In and Kn - based on recurrence relations.
+
+Check the function inverse_chi - strange jump at x = 3.
+
+Check the function integral_spence - results differ from Mathworld.
+
+Convert double precision and complex versions in the same way.
