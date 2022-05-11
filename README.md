@@ -1,6 +1,6 @@
 # specfunc_fullerton
 
-Library for evaluating special mathematical function, based on the library at [netlib.org](http://netlib.org)
+Library for evaluating special mathematical functions, based on the library at [netlib.org](http://netlib.org)
 
 It currently offers single-precision implementations of the following functions:
 
@@ -42,5 +42,5 @@ versions that are also part of the original library will be added in the near fu
 
 # Documentation
 
-The `doc` directory contains a PDF file documenting the functions in some detail. As mahematical expressions are involved
+The `doc` directory contains a PDF file documenting the functions in some detail. As mathematical expressions are involved
 to precisely define these functions, the documentation source is in Latex.
