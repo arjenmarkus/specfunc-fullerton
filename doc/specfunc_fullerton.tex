@@ -7,20 +7,20 @@
 
 \section{Introduction}
 
-The orignal code to the library can be found on \url{http://netlib.org}. It has been updated to the current
+The original code to the library can be found on \url{http://netlib.org}. It has been updated to the current
 Fortran standard:
 
 \begin{itemize}
 \item
-The code has been transformed to free-form
+The code has been transformed to free-form.
 \item
 Elimination of \verb+GOTO+ and introduction of \verb+IMPLICIT NONE+. In some cases calculations for
 particular cases has been moved to make the control flow easier.
 \item
-Error messages because of arguments out of range have been replaced by \verb+NaN+. The original code would
+Error messages because of arguments out of range have been replaced by \verb+NaN+ of \verb+Inf+. The original code would
 generally stop the program.
 \item
-Warnings because of loss of accuracry have been removed, as such messages, written to the screen, do not seem
+Warnings because of loss of accuracy have been removed, as such messages, written to the screen, do not seem
 appropriate for a general library. It may be useful to add an auxiliary routine that checks the arguments.
 \item
 All code is now contained in a small set of modules, where the module \verb+specfunc_fullerton+ is the overall
@@ -53,18 +53,40 @@ The implementations of the first derivatives are:
     y = airy_biprime(x)
 \end{verbatim}
 
+\emph{Notes:}
+\begin{itemize}
+\item
+The function $Ai$ decays rapidly. For large values of $x$ the implementation returns 0.
+\item
+The function $Bi$ grows rapidly. For large values of $x$ the implementation returns \verb~+Inf~. Similarly for its derivative.
+\end{itemize}
+
 
 \section{Modified Bessel functions}
-The module \verb+fullerton_bessel+ implements the modified Bessel functions of the first and second kind, $I0$, $I1$, $K0$, $K1$
-and $In$, $Kn$. The ordinary Bessel functions are part of the current Fortran standard.
+The module \verb+fullerton_bessel+ implements the modified Bessel functions of the first and second kind, $I_0$, $I_1$, $K_0$, $K_1$
+and $I_n$, $K_n$. The ordinary Bessel functions are part of the current Fortran standard.
 
 \begin{verbatim}
     y = bessel_i0(x)
     y = bessel_i1(x)
     y = bessel_k0(x)
     y = bessel_k1(x)
+    y = bessel_in(n,x)
+    y = bessel_kn(n,x)
 \end{verbatim}
-The argument $x$ must be positive.
+The argument $x$ must be positive and $n$ a non-negative integer.
+
+\emph{Notes:}
+\begin{itemize}
+\item
+The general modified Bessel functions with the integer parameter $n$ have been implemented via
+well-known recursive relations.
+\item
+The functions $I_0$, $I_1$, $I_n$ may overflow if the value of $x$ is too large, \verb~+Inf~ is returned in that case.
+\item
+The functions $K_0$, $K_1$, $K_n$ may underflow if the value of $x$ is too large, \verb~0~ is returned in that case.
+\end{itemize}
+
 
 \section{Beta function and related functions}
 The module \verb+fullerton_beta+ contains implementations for the beta function, the incomplete beta function
@@ -77,13 +99,13 @@ The beta function is defined as:
 \end{equation}
 \noindent where parameters $p, q > -1$
 
-The incomplete beta is defined as:
+The incomplete beta function is defined as:
 
 \begin{equation}
     B(x;p,q) = \int_0^x u^{p-1} (1 - u)^{q-1} du
 \end{equation}
 
-The implementations of these fucntions and the logarithm are:
+The implementations of these functions and the logarithm are:
 
 \begin{verbatim}
     y = beta(p,q)
@@ -91,9 +113,18 @@ The implementations of these fucntions and the logarithm are:
     y = log_beta(p,q)
 \end{verbatim}
 
+\emph{Notes:}
+\begin{itemize}
+\item
+The implementation of the Beta function requires $a$ and $b$ to be both positive. This is a limitation with
+respect to the actual mathematical function.
+\item
+For very large values of $a$ and $b$ the implementation simply returns 0.
+\end{itemize}
+
 
 \section{Exponential integrals}
-The module \verb+fullerton_ei+ can be used to evaluate a variety of definite integrals:
+The module \verb+fullerton_ei+ can be used to evaluate a variety of indefinite integrals:
 
 \begin{eqnarray}
     E_n(x) &=& \int^\infty_1 \frac{e^{-xt}}{t^n} dt              \\
@@ -105,7 +136,7 @@ The module \verb+fullerton_ei+ can be used to evaluate a variety of definite int
 \end{eqnarray}
 \noindent where $\gamma$ is the Euler-Mascheroni constant, 0.5772156649...
 
-The exponential integrals $Ei$, $E_1$ and $E_n$ is implemented as:
+The exponential integrals $Ei$, $E_1$ and $E_n$ are implemented as:
 
 \begin{verbatim}
     y = integral_ei(x)
@@ -122,6 +153,19 @@ hyperbolic sine integral $Shi$ are implemented as:
     y = integral_si(x)
     y = integral_shi(x)
 \end{verbatim}
+
+\emph{Notes:}
+\begin{itemize}
+\item
+For the logarithmic integral $Li$ the argument $x$ must be positive, otherwise \verb+NaN+ is returned.
+\item
+Also for $x \approx 1$ the result of $Li$ has low precision.
+\item
+THe argument $x$ must not be zero for the exponential integral $E_1$.
+\item
+The implementation of $E_1$ returns 0 for very large arguments.
+\end{itemize}
+
 
 \section{Gamma function and related functions}
 The module \verb+fullerton_gamma+ implements the Gamma function and several related functions. Note that
@@ -140,12 +184,13 @@ The implemented functions are:
 \url{https://www.cs.purdue.edu/homes/wxg/selected_works/section_02/155.pdf}.
 
 In addition the module evaluates the logarithm of the Gamma function and the reciprocal. A direct evaluation
-of these expressions is more accurate than evaluting the Gamma function and then taking the logarithm or the reciprocal
+of these expressions is more accurate than evaluating the Gamma function and then taking the logarithm or the reciprocal
 of that result.
 
 The functions are implemented as:
 \begin{verbatim}
-    y = fgamma(x)
+    y = fgamma(x)             ! alternative to the intrinsic function,
+                              ! used internally
     y = log_gamma(x)
     y = inc_gamma(a,x)        ! gamma(a,x)
     y = inc_gamma_compl(a,x)  ! Gamma(a,x), the complement
@@ -154,10 +199,26 @@ The functions are implemented as:
     y = digamma(x)
 \end{verbatim}
 
-The subroutine \verb+sign_log_gamma+ evaluates the logarithm and the sign of the gamma function:
+The subroutine \verb+sign_log_gamma+ evaluates the logarithm and the sign of the Gamma function:
 \begin{verbatim}
     call sign_log_gamma( x, algam, sgngam )
 \end{verbatim}
+
+\emph{Notes:}
+\begin{itemize}
+\item
+For the Gamma function and its logarithm overflow may occur if the argument is too large or is around zero or a negative integer.
+In that case \verb~+Inf~ is returned (regardless of the sign of the mathematical Gamma function in that neighbourhood).
+\item
+Also for $x$ near a negative integer the result has low precision.
+\item
+For the incomplete Gamma functions, the value of $x$ must be non-negative. For $x = 0$ and $a \leq 0$, these functions are
+not defined. In these cases \verb+NaN+ is returned.
+\item
+The Tricomi gamma function requires $x$ to be non-negative.
+\item
+For the digamma function $psi$ the result is inaccurate if $x$ is close to zero or a negative integer (poles of $\Gamma(x)$).
+\end{itemize}
 
 
 \section{Inverse exponential integrals}
@@ -168,14 +229,20 @@ and the inverse hyperbolic cosine integral:
     y &=& Chi^{-1}(x)
 \end{eqnarray}
 
-Thse mathematical functions are implemented as:
+These mathematical functions are implemented as:
 \begin{verbatim}
     y = inverse_ci(x)
     y = inverse_chi(x)
 \end{verbatim}
 
-\emph{Note:} the implementation of $Chi^{-1}(x)$ presents a discontinuity around $x = 3$. This is
+\emph{Notes:}
+\begin{itemize}
+\item
+The implementation of $Chi^{-1}(x)$ presents a discontinuity around $x = 3$. This is
 quite unusual within this library. It needs to be further investigated.
+\item
+For very small values of $x$ the implementations of $Ci$ and $Chi$ return 0, instead of an underflowing number.
+\end{itemize}
 
 \section{Pochhammer symbol and related funcions}
 The module \verb+fullerton_poch+ implements the Pochhammer symbol and two related functions:
@@ -195,6 +262,22 @@ The functions are implemented as:
     y = fac(n)
 \end{verbatim}
 
+\emph{Notes:}
+\begin{itemize}
+\item
+For the factorial the argument must be zero or positive, otherwise \verb+Nan+ is returned.
+\item
+If the argument for the factorial is too large, \verb~+Inf~ is returned.
+\item
+For the Pochhammer symbol, the exceptions are fairly complicated:
+    \begin{itemize}
+    \item If the sum $a+x$ is a negative integer, but $a$ is not, the value is undefined.
+    \item For large values of $x$ the result is not accurate, because the sum $a+x$ can not be calculated accurately.
+    \item This is also the case if $a$ or $a+x$ are close to a negative integer.
+    \end{itemize}
+
+\end{itemize}
+
 
 \section{Miscelleaneous functions}
 The module \verb+fullerton_misc+ defines as number of miscellaneous functions:
@@ -210,7 +293,7 @@ Dawson's integral:
      D(x) = e^{-x^2} \int^y_0 e^{y^2} dy
 \end{equation}
 
-\noindent and its first derivative $D'(x) = 1 = 2 x D(x)$.
+\noindent and its first derivative $D'(x) = 1 - 2 x D(x)$.
 \item
 Spence's function:
 \begin{equation}
@@ -229,5 +312,15 @@ These functions are implemented as:
     y = dawson_prime(x)
     y = integral_spence(x)
 \end{verbatim}
+
+\emph{Notes:}
+\begin{itemize}
+\item
+For the implementation \verb+lnrel+ the argument must be larger than -1.
+\item
+The implementation \verb+lnrel+ will have low precision if the argument is too near -1.
+\item
+Also for $x \approx 1$ the result has low precision.
+\end{itemize}
 
 \end{document}

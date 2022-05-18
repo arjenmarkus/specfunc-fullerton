@@ -6,3 +6,10 @@ Check the function inverse_chi - strange jump at x = 3.
 Check the function integral_spence - results differ from Mathworld.
 
 Convert double precision and complex versions in the same way.
+
+dd. 17 may 2022
+Convert the Bessel functions of fractional order. Besks
+
+Implement relations for the derivatives of Bessel functions.
+
+Complete the notes on the functions - gamic.
