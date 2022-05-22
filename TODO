@@ -12,4 +12,9 @@ Convert the Bessel functions of fractional order. Besks
 
 Implement relations for the derivatives of Bessel functions.
 
-Complete the notes on the functions - gamic.
+dd. 22 may 2022
+Add test programs for the extra Bessel functions and the derivatives.
+
+Make sure that the module for complex functions does not cause conflicts
+with the other modules.
+

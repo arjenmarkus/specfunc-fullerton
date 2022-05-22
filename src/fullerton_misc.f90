@@ -10,6 +10,10 @@ module fullerton_misc
     private
     public :: cbrt, lnrel, exprel, integral_dawson, integral_spence, dawson_prime
 
+    interface cbrt
+        module procedure rcbrt
+    end interface
+
     interface lnrel
         module procedure alnrel
     end interface
@@ -28,11 +32,11 @@ module fullerton_misc
 
 contains
 
-! cbrt --
+! rcbrt --
 !     Original:
 !     june 1977 edition.   w. fullerton, c3, los alamos scientific lab.
 !
-real function cbrt (x)
+real function rcbrt (x)
     real, intent(in) :: x
 
     real, save :: cbrt2(5) = [ &
@@ -57,7 +61,7 @@ real function cbrt (x)
     !
     ! Calculation
     !
-    cbrt = 0.0
+    rcbrt = 0.0
 
     if ( x /= 0.0 ) then
         call r9upak (abs(x), y, n)
@@ -68,16 +72,16 @@ real function cbrt (x)
         ! to polynomial form.  the approx is nearly best in the sense of
         ! relative error with 4.085 digits accuracy.
         !
-        cbrt = .439581e0 + y*(.928549e0 + y*(-.512653e0 + y*.144586e0))
+        rcbrt = .439581e0 + y*(.928549e0 + y*(-.512653e0 + y*.144586e0))
 
         do iter=1,niter
-           cbrtsq = cbrt*cbrt
-           cbrt   = cbrt + (y-cbrt*cbrtsq)/(3.0*cbrtsq)
+           cbrtsq = rcbrt*rcbrt
+           rcbrt  = rcbrt + (y-rcbrt*cbrtsq)/(3.0*cbrtsq)
         enddo
 
-        cbrt = r9pak (cbrt2(irem)*sign(cbrt,x), ixpnt)
+        rcbrt = r9pak (cbrt2(irem)*sign(rcbrt,x), ixpnt)
     endif
-end function cbrt
+end function rcbrt
 
 ! alnrel --
 !     Original:

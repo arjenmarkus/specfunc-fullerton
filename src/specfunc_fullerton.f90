@@ -37,4 +37,5 @@ module specfunc_fullerton
     use fullerton_inv_ci
     use fullerton_misc
     use fullerton_poch
+    !use fullerton_complex -- some checking still required
 end module specfunc_fullerton

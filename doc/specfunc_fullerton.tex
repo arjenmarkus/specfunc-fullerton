@@ -286,7 +286,7 @@ The module \verb+fullerton_misc+ defines as number of miscellaneous functions:
 \item
 The cubic root of a real number (including negative numbers)
 \item
-The functions $f(x) = ln(1+x)/x$ and $g(x) = (e^x-1)/x$ with the argument $|x| << 1$
+The functions $f(x) = ln(1+x)$ and $g(x) = (e^x-1)/x$ with the argument $|x| << 1$
 \item
 Dawson's integral:
 \begin{equation}
@@ -322,5 +322,18 @@ The implementation \verb+lnrel+ will have low precision if the argument is too n
 \item
 Also for $x \approx 1$ the result has low precision.
 \end{itemize}
+
+
+\section{Complex versions}
+The module \verb+fullerton_complex+ offers the implementation of complex versions of several of the above functions:
+\begin{itemize}
+\item The beta function and the logarithm of the beta function
+\item The gamma function, reciprocal gamma function and the logarithm of the gamma function
+\item The digamma function
+\item Several miscellaneous functions, $\arctan2(z,w)$, $\log_{10}(z)$, $(e^{z}-1)/z$, $\ln(1+z)$, $z^{1/3}$
+\end{itemize}
+
+The names of the implementations are the same as the real versions, notably the complex gamma function is implemented.
+as \verb+fgamma(z0)+.
 
 \end{document}
