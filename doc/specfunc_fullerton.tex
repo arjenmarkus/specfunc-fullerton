@@ -62,9 +62,10 @@ The function $Bi$ grows rapidly. For large values of $x$ the implementation retu
 \end{itemize}
 
 
-\section{Modified Bessel functions}
+\section{Modified Bessel functions and first derivatives of Bessel functions}
 The module \verb+fullerton_bessel+ implements the modified Bessel functions of the first and second kind, $I_0$, $I_1$, $K_0$, $K_1$
-and $I_n$, $K_n$. The ordinary Bessel functions are part of the current Fortran standard.
+and $I_n$, $K_n$. The ordinary Bessel functions are part of the current Fortran standard. For all these Bessel functions
+the module also provides functions to evaluate the first derivatives.
 
 \begin{verbatim}
     y = bessel_i0(x)
@@ -90,6 +91,23 @@ It takes a real argument \verb+nu+ which must be between -1 and 1. The number of
 is determined by the size of the argument \verb+bk+. The parameter for these values is:
 \verb~nu, nu+1, nu+2, ...~
 
+The first derivatives of the Bessel functions are evaluated using the following functions:
+
+\begin{verbatim}
+    dydt = bessel_j0_prime(x)
+    dydt = bessel_j1_prime(x)
+    dydt = bessel_jn_prime(n,x)
+    dydt = bessel_y0_prime(x)
+    dydt = bessel_y1_prime(x)
+    dydt = bessel_yn_prime(n,x)
+    dydt = bessel_i0_prime(x)
+    dydt = bessel_i1_prime(x)
+    dydt = bessel_in_prime(n,x)
+    dydt = bessel_k0_prime(x)
+    dydt = bessel_k1_prime(x)
+    dydt = bessel_kn_prime(n,x)
+\end{verbatim}
+
 \emph{Notes:}
 \begin{itemize}
 \item
@@ -102,6 +120,8 @@ The functions $K_0$, $K_1$, $K_n$ may underflow if the value of $x$ is too large
 \item
 The subroutine \verb+bessel_knu+ in principle can return the values in inverse order for $\nu$ as well, but this
 has not yet been tested.
+\item
+Derivatives for $K_\nu$ have not been implemented yet.
 \end{itemize}
 
 

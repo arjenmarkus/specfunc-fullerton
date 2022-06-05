@@ -12,7 +12,11 @@ module fullerton_bessel
     implicit none
 
     private
-    public :: bessel_i0, bessel_i1, bessel_in, bessel_k0, bessel_k1, bessel_kn, bessel_knu
+    public :: bessel_i0, bessel_i1, bessel_in, bessel_k0, bessel_k1, bessel_kn, bessel_knu, &
+              bessel_j0_prime, bessel_j1_prime, bessel_jn_prime,                            &
+              bessel_y0_prime, bessel_y1_prime, bessel_yn_prime,                            &
+              bessel_i0_prime, bessel_i1_prime, bessel_in_prime,                            &
+              bessel_k0_prime, bessel_k1_prime, bessel_kn_prime
 
     !
     ! Rename the functions (combine single and double precision versions)
@@ -1284,5 +1288,100 @@ subroutine r9knus (xnu, x, bknu, bknu1, switch)
         endif
     endif
 end subroutine r9knus
+
+! bessel_*_prime --
+!     Evaluate the first derivative of the various Bessel functions, using the
+!     well-known relations
+!
+!     Note:
+!     The code relies on the standard intrinsic functions for the ordinary Bessel functions
+!
+real function bessel_j0_prime( x )
+    real, intent(in) :: x
+
+    bessel_j0_prime = -besj1(x)
+
+end function bessel_j0_prime
+
+real function bessel_j1_prime( x )
+    real, intent(in) :: x
+
+    bessel_j1_prime = 0.5 * (besj0(x) - besjn(2,x))
+
+end function bessel_j1_prime
+
+real function bessel_jn_prime( n, x )
+    integer, intent(in) :: n
+    real, intent(in)    :: x
+
+    bessel_jn_prime = 0.5 * (besjn(n-1,x) - besjn(n+1,x))
+
+end function bessel_jn_prime
+
+real function bessel_y0_prime( x )
+    real, intent(in) :: x
+
+    bessel_y0_prime = -besy1(x)
+
+end function bessel_y0_prime
+
+real function bessel_y1_prime( x )
+    real, intent(in) :: x
+
+    bessel_y1_prime = 0.5 * (besy0(x) - besyn(2,x))
+
+end function bessel_y1_prime
+
+real function bessel_yn_prime( n, x )
+    integer, intent(in) :: n
+    real, intent(in)    :: x
+
+    bessel_yn_prime = 0.5 * (besyn(n-1,x) - besyn(n+1,x))
+
+end function bessel_yn_prime
+
+real function bessel_i0_prime( x )
+    real, intent(in) :: x
+
+    bessel_i0_prime = bessel_i1(x)
+
+end function bessel_i0_prime
+
+real function bessel_i1_prime( x )
+    real, intent(in) :: x
+
+    bessel_i1_prime = 0.5 * (bessel_i0(x) + bessel_in(2,x))
+
+end function bessel_i1_prime
+
+real function bessel_in_prime( n, x )
+    integer, intent(in) :: n
+    real, intent(in)    :: x
+
+    bessel_in_prime = 0.5 * (bessel_in(n-1,x) + bessel_in(n+1,x))
+
+end function bessel_in_prime
+
+real function bessel_k0_prime( x )
+    real, intent(in) :: x
+
+    bessel_k0_prime = -bessel_k1(x)
+
+end function bessel_k0_prime
+
+real function bessel_k1_prime( x )
+    real, intent(in) :: x
+
+    bessel_k1_prime = -0.5 * (bessel_k0(x) + bessel_kn(2,x))
+
+end function bessel_k1_prime
+
+real function bessel_kn_prime( n, x )
+    integer, intent(in) :: n
+    real, intent(in)    :: x
+
+    bessel_kn_prime = 0.5 * (bessel_kn(n-1,x) + bessel_kn(n+1,x))
+
+end function bessel_kn_prime
 
 end module fullerton_bessel

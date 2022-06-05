@@ -1,5 +1,5 @@
 dd. 10 may 2022
-Test the functions En, In and Kn - based on recurrence relations. DONE
+Test the functions En, In and Kn - based on recurrence relations. Implementation DONE - needs to be checked
 
 Check the function inverse_chi - strange jump at x = 3.
 
@@ -10,7 +10,7 @@ Convert double precision and complex versions in the same way.
 dd. 17 may 2022
 Convert the Bessel functions of fractional order. Besks. DONE
 
-Implement relations for the derivatives of Bessel functions.
+Implement relations for the derivatives of Bessel functions. DONE - needs to be checked
 
 dd. 22 may 2022
 Add test programs for the extra Bessel functions and the derivatives.

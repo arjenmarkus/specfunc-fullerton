@@ -6,12 +6,14 @@ It currently offers single-precision implementations of the following functions:
 
 * Airy functions: airy_ai, airy_bi, airy_aiprime, airy_biprime
 * Modified Bessel functions: bessel_i0, bessel_i1, bessel_in, bessel_k0, bessel_k1, bessel_kn
+* Derivaties of the Bessel functions: bessel_j0_prime, bessel_j1_prime, bessel_jn_prime, bessel_y0_prime, bessel_y1_prime, bessel_yn_prime, bessel_i0_prime, bessel_i1_prime, bessel_in_prime, bessel_k0_prime, bessel_k1_prime, bessel_kn_prime
 * Beta functions: beta, beta_inc, log_beta
 * Exponential and logarithmic integrals: integral_ei, integral_e1, integral_en, integral_li, integral_li, integral_si, integral_ci, integral_shi, integral_chi
 * Gamma functions: fgamma, log_gamma, sign_log_gamma, inc_gamma, inc_gamma_compl, gamma_tricomi, reciprocal_gamma, digamma
 * Inverse cosine and cosine hyperbolic integrals: cin, cinh
 * Miscellaneous functions: cbrt, lnrel, exprel, integral_dawson, dawson_prime, integral_spence
 * Pochhammer symbols: poc, poch1, factorial
+* Complex versions of the following functions: cbrt, lnrel, exprel, atan2, log10, fgamma, log_gamma, reciprocal_gamma, digamma, beta, log_beta
 
 The overall module is `specfunc_fullerton`, which you can use to get access to the entire library. Various specific
 modules are available, but mostly for convenience during the development.
