@@ -34,9 +34,19 @@ source-dir="test/bessel_k1"
 main="test_k1.f90"
 
 [[test]]
+name="test_bessel_knu"
+source-dir="test/bessel_knu"
+main="test_knu.f90"
+
+[[test]]
 name="test_beta"
 source-dir="test/beta"
 main="test_beta.f90"
+
+[[test]]
+name="test_complex"
+source-dir="test/complex"
+main="test_complex.f90"
 
 [[test]]
 name="test_ei"

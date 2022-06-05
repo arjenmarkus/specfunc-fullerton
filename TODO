@@ -1,5 +1,5 @@
 dd. 10 may 2022
-Test the functions En, In and Kn - based on recurrence relations.
+Test the functions En, In and Kn - based on recurrence relations. DONE
 
 Check the function inverse_chi - strange jump at x = 3.
 
@@ -8,7 +8,7 @@ Check the function integral_spence - results differ from Mathworld.
 Convert double precision and complex versions in the same way.
 
 dd. 17 may 2022
-Convert the Bessel functions of fractional order. Besks
+Convert the Bessel functions of fractional order. Besks. DONE
 
 Implement relations for the derivatives of Bessel functions.
 

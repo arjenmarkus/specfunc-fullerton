@@ -76,6 +76,20 @@ and $I_n$, $K_n$. The ordinary Bessel functions are part of the current Fortran 
 \end{verbatim}
 The argument $x$ must be positive and $n$ a non-negative integer.
 
+For the modified Bessel function of the second kind, $K_\nu$, it is also possible to compute the
+function values for real values of the parameter. This is doen via the subroutine \verb+bessel_knu+:
+\begin{verbatim}
+    subroutine bessel_knu(nu, x, bk)
+        real, intent(in)              :: nu, x
+        real, intent(out)             :: bk(:)
+
+        ...
+    end subroutine
+\end{verbatim}
+It takes a real argument \verb+nu+ which must be between -1 and 1. The number of function values to be calculated
+is determined by the size of the argument \verb+bk+. The parameter for these values is:
+\verb~nu, nu+1, nu+2, ...~
+
 \emph{Notes:}
 \begin{itemize}
 \item
@@ -85,6 +99,9 @@ well-known recursive relations.
 The functions $I_0$, $I_1$, $I_n$ may overflow if the value of $x$ is too large, \verb~+Inf~ is returned in that case.
 \item
 The functions $K_0$, $K_1$, $K_n$ may underflow if the value of $x$ is too large, \verb~0~ is returned in that case.
+\item
+The subroutine \verb+bessel_knu+ in principle can return the values in inverse order for $\nu$ as well, but this
+has not yet been tested.
 \end{itemize}
 
 

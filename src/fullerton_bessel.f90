@@ -1,19 +1,18 @@
 ! fullerton_bessel.f90 --
 !     Module with functions for modified Bessel functions -I0, I1, K0 and K1
-!     as well as: In, Kn and the first derivatives of the ordinary and modified
-!     Bessel functions.
+!
+!     TODO:
+!     Provide functions for In and Kn via recursive relations
 !
 module fullerton_bessel
+    use fullerton_gamma
     use fullerton_aux
     use ieee_arithmetic
 
     implicit none
 
     private
-    public :: bessel_i0, bessel_i1, bessel_in, bessel_k0, bessel_k1, bessel_kn, &
-              bessel_j0prime, bessel_y0prime, bessel_i0prime, bessel_k0prime, &
-              bessel_j1prime, bessel_y1prime, bessel_i1prime, bessel_k1prime, &
-              bessel_jnprime, bessel_ynprime, bessel_inprime, bessel_knprime
+    public :: bessel_i0, bessel_i1, bessel_in, bessel_k0, bessel_k1, bessel_kn, bessel_knu
 
     !
     ! Rename the functions (combine single and double precision versions)
@@ -29,6 +28,9 @@ module fullerton_bessel
     end interface
     interface bessel_k1
         module procedure besk1
+    end interface
+    interface bessel_knu
+        module procedure besks
     end interface
 
 contains
@@ -917,98 +919,370 @@ real function bessel_in( n, x )
     endif
 end function bessel_in
 
-! bessel_j0prime, etc --
-!     Evaluate the first derivative of the Bessel functions
+! besks --
+!     Original:
+!         july 1980 edition.   w. fullerton, c3, los alamos scientific lab.
 !
-!     Note:
-!     Standard functions used
+subroutine besks (xnu, x, bk, downward)
+    real, intent(in)              :: xnu, x
+    real, intent(out)             :: bk(:)
+    logical, intent(in), optional :: downward
+
+    real, save :: xmax = 0.0
+    real       :: expxi
+    logical    :: down
+    integer    :: i
+
+    if ( xmax == 0.0 ) then
+        xmax = -log (r1mach(1))
+        xmax = xmax + 0.5*log(3.14*0.5/xmax)
+    endif
+
+    !
+    ! Scale the results
+    !
+
+    down = .false.
+    if ( present(downward) ) then
+        down = downward
+    endif
+
+    call beskes (xnu, x, bk, down)
+
+    expxi = exp(-x)
+
+    do i = 1,size(bk)
+        bk(i) = expxi * bk(i)
+    enddo
+
+end subroutine besks
+
+! beskes --
+!     Original:
+!         july 1980 edition.   w. fullerton, c3, los alamos scientific lab.
 !
-real function bessel_j0prime( x )
-    real, intent(in) :: x
+subroutine beskes (xnu, x, bke, downward)
+    real, intent(in)              :: xnu, x
+    real, intent(out)             :: bke(:)
+    logical, intent(in), optional :: downward
 
-    bessel_j0prime = - besj1(x)
+    real, save :: alnbig = 0.0
+    real       :: v, vend, vincr
+    real       :: bknu1
+    integer    :: i, n
+    logical    :: down, switch
 
-end function bessel_j0prime
+    if ( alnbig == 0.0 ) then
+        alnbig = log (r1mach(2))
+    endif
 
-real function bessel_y0prime( x )
-    real, intent(in) :: x
+    v = abs(xnu)
+    n = size(bke)
 
-    bessel_y0prime = - besy1(x)
+    if ( v >= 1.0 .or. x <= 0.0 ) then
+        bke = ieee_value( x, ieee_quiet_nan )
+        return
+    endif
 
-end function bessel_y0prime
+    if ( n == 0 ) then
+        return ! Nothing to do!
+    endif
 
-real function bessel_i0prime( x )
-    real, intent(in) :: x
+    down = .false.
+    if ( present(downward) ) then
+        down = downward
+    endif
 
-    bessel_i0prime = bessel_i1(x)
+    call r9knus (v, x, bke(1), bknu1, switch)
 
-end function bessel_i0prime
+    if ( n > 1 ) then
+        vincr = sign(1.0, float(n))
 
-real function bessel_k0prime( x )
-    real, intent(in) :: x
+        if ( switch .and. down ) then
+            bke = ieee_value( x, ieee_quiet_nan )
+            return
+        endif
 
-    bessel_k0prime = - bessel_k1(x)
+        bke(2) = bknu1
 
-end function bessel_k0prime
+        if (down) then
+            call r9knus (abs(xnu+vincr), x, bke(2), bknu1, switch)
+        endif
 
-real function bessel_j1prime( x )
-    real, intent(in) :: x
+        if ( n > 2) then
+            vend = abs(xnu+float(n)) - 1.0
+            v    = xnu
+            do i = 3,n
+                v = v + vincr
+                bke(i) = 2.0*v*bke(i-1)/x + bke(i-2)
+            enddo
+        endif
+    endif
+end subroutine beskes
 
-    bessel_j1prime = 0.5 * ( besj0(x) - besjn(2,x) )
+! r9knus --
+!     Original:
+!         june 1977 edition.   w. fullerton, c3, los alamos scientific lab.
+!
+!         compute bessel functions exp(x) * k-sub-xnu (x)  and
+!         exp(x) * k-sub-xnu+1 (x) for 0.0 .le. xnu .lt. 1.0 .
+!
+subroutine r9knus (xnu, x, bknu, bknu1, switch)
+    real, intent(in)     :: xnu, x
+    real, intent(out)    :: bknu, bknu1
+    logical, intent(out) :: switch
 
-end function bessel_j1prime
+!
+! series for c0k        on the interval  0.          to  2.50000d-01
+!                                        with weighted error   1.60e-17
+!                                         log weighted error  16.79
+!                               significant figures required  15.99
+!                                    decimal places required  17.40
+!
+    real, save :: c0kcs(16) = [ &
+        .060183057242626108e0,  &
+       -.15364871433017286e0,   &
+       -.011751176008210492e0,  &
+       -.000852487888919795e0,  &
+       -.000061329838767496e0,  &
+       -.000004405228124551e0,  &
+       -.000000316312467283e0,  &
+       -.000000022710719382e0,  &
+       -.000000001630564460e0,  &
+       -.000000000117069392e0,  &
+       -.000000000008405206e0,  &
+       -.000000000000603466e0,  &
+       -.000000000000043326e0,  &
+       -.000000000000003110e0,  &
+       -.000000000000000223e0,  &
+       -.000000000000000016e0   ]
 
-real function bessel_y1prime( x )
-    real, intent(in) :: x
+!
+! series for znu1       on the interval -7.00000d-01 to  0.
+!                                        with weighted error   1.43e-17
+!                                         log weighted error  16.85
+!                               significant figures required  16.08
+!                                    decimal places required  17.38
+!
+    real, save :: znu1cs(12) = [ &
+        .20330675699419173e0,    &
+        .14007793341321977e0,    &
+        .007916796961001613e0,   &
+        .000339801182532104e0,   &
+        .000011741975688989e0,   &
+        .000000339357570612e0,   &
+        .000000008425941769e0,   &
+        .000000000183336677e0,   &
+        .000000000003549698e0,   &
+        .000000000000061903e0,   &
+        .000000000000000981e0,   &
+        .000000000000000014e0    ]
 
-    bessel_y1prime = 0.5 * ( besy0(x) - besyn(2,x) )
+   real, parameter :: euler = 0.57721566490153286e0
+   real, parameter :: sqpi2 = 1.2533141373155003e0
+   real, parameter :: aln2  = 0.69314718055994531e0
 
-end function bessel_y1prime
+   integer, save   :: ntc0k  = 0
+   integer, save   :: ntznu1 = 0
 
-real function bessel_i1prime( x )
-    real, intent(in) :: x
+   real, save      :: xnusml = 0.0
+   real, save      :: xsml   = 0.0
+   real, save      :: alnsml = 0.0
+   real, save      :: alnbig = 0.0
+   real, save      :: alneps = 0.0
 
-    bessel_i1prime = 0.5 * ( bessel_i0(x) + bessel_in(2,x) )
+   real            :: alpha(15)
+   real            :: beta(15)
+   real            :: a(15)
+   real            :: a0, an, alnz, b0, bn, bknu0, bknud, c0, expx
+   real            :: p1, p2, p3, qq, result, sqrtx, v, vlnz
+   real            :: x2n, x2tov, xi, xmu, z, ztov
+   integer         :: i, ii, n, nterms, inu
 
-end function bessel_i1prime
+   if ( ntc0k == 0 ) then
+       ntc0k = inits (c0kcs, 16, 0.1*r1mach(3))
+       ntznu1 = inits (znu1cs, 12, 0.1*r1mach(3))
 
-real function bessel_k1prime( x )
-    real, intent(in) :: x
+       xnusml = sqrt (r1mach(3)/8.0)
+       xsml   = 0.1*r1mach(3)
+       alnsml = log (r1mach(1))
+       alnbig = log (r1mach(2))
+       alneps = log (0.1*r1mach(3))
+   endif
 
-    bessel_k1prime = - 0.5 * ( bessel_k0(x) + bessel_kn(2,x) )
+   !
+   ! Hard condition: xnu between 0 and 1
+   !
+   if ( xnu < 0.0 .or. xnu >= 1.0 ) then
+       error stop  ! Impossible case - this would mean a problem in the calling routine
+   endif
 
-end function bessel_k1prime
+   switch = .false.
 
-real function bessel_jnprime( n, x )
-    integer, intent(in) :: n
-    real, intent(in)    :: x
+   if ( x <= 2.0 ) then
+        !
+        ! x is small.  compute k-sub-xnu (x) and the derivative of k-sub-xnu (x)
+        ! then find k-sub-xnu+1 (x).  xnu is reduced to the interval (-.5,+.5)
+        ! then to (0., .5), because k of negative order (-nu) = k of positive
+        !
+        v = xnu
+        if ( xnu > 0.5 ) then
+            v = 1.0 - xnu
+        endif
 
-    bessel_jnprime = 0.5 * ( besjn(n-1,x) - besjn(n+1,x) )
+        !
+        ! carefully find (x/2)**xnu and z**xnu where z = x*x/4.
+        !
+        alnz = 2.0 * (log(x) - aln2)
 
-end function bessel_jnprime
+        if ( x <= xnu ) then
+            if ( -0.5*xnu*alnz-aln2-alog(xnu) > alnbig ) then
+                bknu  = ieee_value( x, ieee_positive_inf )
+                bknu1 = ieee_value( x, ieee_positive_inf )
+            endif
+        endif
 
-real function bessel_ynprime( n, x )
-    integer, intent(in) :: n
-    real, intent(in)    :: x
+        vlnz  = v*alnz
+        x2tov = exp (0.5*vlnz)
+        ztov  = 0.0
 
-    bessel_ynprime = 0.5 * ( besyn(n-1,x) - besyn(n+1,x) )
+        if ( vlnz > alnsml ) then
+            ztov = x2tov**2
+        endif
 
-end function bessel_ynprime
+        a0 = 0.5*fgamma(1.0+v)
+        b0 = 0.5*fgamma(1.0-v)
+        c0 = -euler
 
-real function bessel_inprime( n, x )
-    integer, intent(in) :: n
-    real, intent(in)    :: x
+        if ( ztov > 0.5 .and. v > xnusml ) then
+            c0 = -0.75 + csevl ((8.0*v)*v-1., c0kcs, ntc0k)
+        endif
 
-    bessel_inprime = 0.5 * ( bessel_in(n-1,x) + bessel_in(n+1,x) )
+        if ( ztov <= 0.5 ) then
+            alpha(1) = (a0-ztov*b0)/v
+        else
+            alpha(1) = c0 - alnz*(0.75 + csevl (vlnz/0.35+1.0, znu1cs, ntznu1))*b0
+        endif
 
-end function bessel_inprime
+        beta(1) = -0.5*(a0+ztov*b0)
 
-real function bessel_knprime( n, x )
-    integer, intent(in) :: n
-    real, intent(in)    :: x
+        z = 0.0
+        if ( x > xsml ) then
+            z = 0.25*x**2
+        endif
 
-    bessel_knprime = - 0.5 * ( bessel_kn(n-1,x) + bessel_kn(n+1,x) )
+        nterms = max (2.0, 11.0+(8.*alnz-25.19-alneps)/(4.28-alnz))
 
-end function bessel_knprime
+        do i = 2,nterms
+            xi = i - 1
+            a0 = a0/(xi*(xi-v))
+            b0 = b0/(xi*(xi+v))
+            alpha(i) = (alpha(i-1)+2.0*xi*a0)/(xi*(xi+v))
+            beta(i)  = (xi-0.5*v)*alpha(i) - ztov*b0
+        enddo
+
+        bknu  = alpha(nterms)
+        bknud = beta(nterms)
+
+        do ii = 2,nterms
+            i = nterms + 1 - ii
+            bknu  = alpha(i) + bknu*z
+            bknud = beta(i) + bknud*z
+        enddo
+
+        expx = exp(x)
+        bknu = expx*bknu/x2tov
+
+        if ( -0.5*(xnu+1.)*alnz-2.0*aln2 > alnbig ) then
+            switch = .true.
+            return
+        endif
+
+        bknud = expx*bknud*2.0/(x2tov*x)
+
+        if ( xnu <= 0.5 ) then
+            bknu1 = v*bknu/x - bknud
+        else
+
+            bknu0 = bknu
+            bknu = -v*bknu/x - bknud
+            bknu1 = 2.0*xnu*bknu/x + bknu0
+        endif
+    else
+        !
+        ! x is large.  find k-sub-xnu (x) and k-sub-xnu+1 (x) with y. l. luke-s
+        ! rational expansion.
+        !
+        sqrtx = sqrt(x)
+
+        if ( x <= 1.0/xsml ) then
+            an = -1.56 + 4.0/x
+            bn = -0.29 - 0.22/x
+
+            nterms = min(15, int(max(3., an+bn*alneps)))
+
+            do inu = 1,2
+                xmu = 0.
+                if (inu == 1 )then
+                    if ( xnu > xnusml ) then
+                        xmu = (4.0*xnu)*xnu
+                    endif
+                else
+                    xmu = 4.0*(abs(xnu)+1.)**2
+                endif
+
+                a(1) =  1.0 - xmu
+                a(2) =  9.0 - xmu
+                a(3) = 25.0 - xmu
+
+                if ( a(2) == 0.) then
+                    result = sqpi2*(16.*x+xmu+7.)/(16.*x*sqrtx)
+                else
+                    alpha(1) = 1.0
+                    alpha(2) = (16.*x+a(2))/a(2)
+                    alpha(3) = ((768.*x+48.*a(3))*x + a(2)*a(3))/(a(2)*a(3))
+
+                    beta(1) = 1.0
+                    beta(2) = (16.*x+(xmu+7.))/a(2)
+                    beta(3) = ((768.*x+48.*(xmu+23.))*x + ((xmu+62.)*xmu+129.)) / (a(2)*a(3))
+
+                    if ( nterms >= 4 ) then
+                        do i = 4,nterms
+                            n = i - 1
+                            x2n = 2*n - 1
+
+                            a(i) = (x2n+2.)**2 - xmu
+                            qq = 16.*x2n/a(i)
+                            p1 = -x2n*(float(12*n*n-20*n)-a(1))/((x2n-2.)*a(i)) - qq*x
+                            p2 = (float(12*n*n-28*n+8)-a(1))/a(i) - qq*x
+                            p3 = -x2n*a(i-3)/((x2n-2.)*a(i))
+
+                            alpha(i) = -p1*alpha(i-1) - p2*alpha(i-2) - p3*alpha(i-3)
+                            beta(i) = -p1*beta(i-1) - p2*beta(i-2) - p3*beta(i-3)
+                        enddo
+                    endif
+
+                    result = sqpi2*beta(nterms)/(sqrtx*alpha(nterms))
+                endif
+
+                select case (inu)
+                    case( 1 )
+                        bknu = result
+                    case( 2 )
+                        bknu1 = result
+                    case default
+                        error stop ! Impossible case!
+                end select
+            enddo
+        else
+
+            !
+            ! Very large x
+            !
+            bknu = sqpi2/sqrtx
+            bknu1 = bknu
+        endif
+    endif
+end subroutine r9knus
 
 end module fullerton_bessel
